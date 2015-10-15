@@ -202,17 +202,17 @@
 #define CONFIG_SYS_AUTOLOAD		"no"
 
 #define CONFIG_BOOTARGS			"console=ttyS0,115200n8 root=/dev/sda2 ubi.mtd=data,512"
-#define CONFIG_BOOTCOMMAND		"run ideboot"
+#define CONFIG_BOOTCOMMAND		"run sataboot_cmd"
 #define CONFIG_BOOT_RETRY_TIME		-1
 #define CONFIG_RESET_TO_RETRY		60
-#define CONFIG_PREBOOT			"run safeboot"
+/* define CONFIG_PREBOOT			"run safeboot" */
 
 #define CONFIG_NETCONSOLE
 #define CONFIG_IPADDR			192.168.0.100
 
 #define CONFIG_EXTRA_ENV_SETTINGS	\
 	"console=" CONFIG_DEFAULT_CONSOLE \
-	"bootargs=" CONFIG_DEFAULT_CONSOLE \
+	"bootargs=" CONFIG_BOOTARGS "\0" \
 	"mtdids=" MTDIDS_DEFAULT "\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
 	"safeboot=" \
@@ -231,7 +231,18 @@
 			"setenv stderr nc;" \
 			"setenv stdin nc;" \
 			"setenv stdout nc;" \
-			"echo switch to net console" "\0"
+			"echo switch to net console" "\0" \
+			"uinitrd_addr=0x60e00000" "\0" \
+			"uimage_addr=0x60500000" "\0" \
+			"dtb_addr=0x62c00000" "\0" \
+			"sataboot_imgload=" \
+				"ext2load ide 0:1 $uimage_addr /uImage;" \
+				"ext2load ide 0:1 $uinitrd_addr /uInitrd;" \
+				"ext2load ide 0:1 $dtb_addr /dts/ox820-pogoplug-classic.dtb" "\0" \
+			"sataboot_cmd=" \
+				"run sataboot_imgload;" \
+				"bootm $uimage_addr $uinitrd_addr $dtb_addr" "\0"
+
 
 /* env */
 #if defined(CONFIG_BOOT_FROM_NAND)
@@ -242,13 +253,14 @@
 /* CONFIG_BOOT_FROM_NAND end */
 
 #elif defined(CONFIG_BOOT_FROM_SATA)
-#ifdef CONFIG_BOOT_FROM_EXT4
+/* ifdef CONFIG_BOOT_FROM_EXT4 */
+#if 1
 #define CONFIG_ENV_IS_IN_EXT4
 #define CONFIG_START_IDE
 #define EXT4_ENV_INTERFACE 		"ide"
 #define EXT4_ENV_DEVICE			0
 #define EXT4_ENV_PART			1
-#define EXT4_ENV_FILE			"/boot/u-boot.env"
+#define EXT4_ENV_FILE			"/u-boot.env"
 #define CONFIG_ENV_SIZE			(16 * 1024)
 #else
 #define CONFIG_ENV_IS_IN_FAT
